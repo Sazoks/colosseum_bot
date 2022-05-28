@@ -40,6 +40,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="stop_monitoring">
+        <property name="text">
+         <string>Стоп</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item row="0" column="0">
