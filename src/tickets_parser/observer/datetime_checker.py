@@ -27,13 +27,14 @@ class DateTimeChecker:
         self.__observed_date = observed_date
         self.__observed_time = observed_time
 
-    def start_check(self) -> WebElement:
+    def start_check(self) -> Optional[WebElement]:
         """
         Проверка указанных даты и времени на доступность.
 
         :return:
             Возвращает элемент, содержащий доступную дату и кнопку для старта
-            процесса добавления билетов в корзину.
+            процесса добавления билетов в корзину, если дата и время доступны,
+            иначе None.
         """
 
         # Объект кнопки для переключения на следующий месяц.
@@ -75,12 +76,14 @@ class DateTimeChecker:
         if current_day_element is not None \
                and self.__allowed_day(current_day_element):
             webdriver.ActionChains(self.__driver).click(current_day_element).perform()
+        else:
+            # Если день недоступен, возвращаем None.
+            return None
 
         time.sleep(3)
 
-        self.__allowed_time()
-
-        return False
+        # Если день доступен, определяем, доступно ли время.
+        return self.__allowed_time()
 
     def __allowed_time(self) -> Optional[WebElement]:
         """
@@ -93,12 +96,11 @@ class DateTimeChecker:
         pages = self.__get_count_time_pages()
         current_time_elem: Optional[WebElement] = None
 
-        # TODO: Доделать итерацию по всем страницам списка со временем.
-        #   Сделать проверку, что если нужное время меньше первого времени в
-        #   текущем списке, то поиск можно оставноить. Это оптимизация, потому
-        #   что все времена расположены в порядке возрастания.
         # Проходимся по каждой странице.
         for _ in range(pages):
+            # Кнопка переключения страниц.
+            next_page_btn = self.__get_next_page_btn()
+            
             # Получаем список текущих времен с кнопками для выбора билетов.
             current_time_list = self.__driver.find_elements(
                 By.CSS_SELECTOR,
@@ -110,10 +112,20 @@ class DateTimeChecker:
                 current_time_str = time_elem.find_element(By.TAG_NAME, 'div') \
                     .find_element(By.TAG_NAME, 'div').text
                 current_time_obj = dt.datetime.strptime(current_time_str, '%H:%M').time()
+
+                # Если нужное время меньше самого минимального времени в
+                # списке, останавливаем процесс поиска, т.к. дальше искать -
+                # нет смысла, т.к. все времена идут по возрастанию.
+                if self.__observed_time < current_time_obj:
+                    return None
+
                 if self.__observed_time == current_time_obj:
                     return time_elem
 
-            # Если в текущем списке нужн
+            # Если в текущем списке нужного времени нет, переключаем страницу.
+            if next_page_btn is not None:
+                webdriver.ActionChains(self.__driver).click(next_page_btn).perform()
+                time.sleep(2)
 
         return current_time_elem
 
@@ -135,6 +147,23 @@ class DateTimeChecker:
         value = int(li_list[-2].find_element(By.TAG_NAME, 'a').text)
 
         return value
+
+    def __get_next_page_btn(self) -> Optional[WebElement]:
+        """Получение кнопки переключения страниц со временем"""
+
+        # Открытый список с навигационной панелью.
+        navigation = self.__driver.find_element(By.ID, 'prfrmncPages')
+
+        # Если панель навигации пуста, значит, кнопки нет.
+        if navigation.text == '':
+            return None
+
+        # Если панель навигации не пуста, собираем все элементы списка.
+        li_list = navigation.find_element(By.TAG_NAME, 'ul') \
+            .find_elements(By.TAG_NAME, 'li')
+
+        # Последний элемент - элемент, содержащий кнопку переключения.
+        return li_list[-1]
 
     def __allowed_day(self, day_element: WebElement) -> bool:
         """
