@@ -100,7 +100,7 @@ class DateTimeChecker:
         for _ in range(pages):
             # Кнопка переключения страниц.
             next_page_btn = self.__get_next_page_btn()
-            
+
             # Получаем список текущих времен с кнопками для выбора билетов.
             current_time_list = self.__driver.find_elements(
                 By.CSS_SELECTOR,

@@ -10,6 +10,7 @@ from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
 from .datetime_checker import DateTimeChecker
+from .ticket_collector import TicketCollector
 
 
 class DateTimeObserver:
@@ -130,7 +131,11 @@ class DateTimeObserver:
             # Если элемент с нужным временем есть, начинаем процесс сбора
             # билетов в корзину.
             if allowed_time_element is not None:
-                print('Время есть!')
+                ticket_collector = TicketCollector(
+                    self.__driver,
+                    allowed_time_element,
+                )
+                ticket_collector.start_collect()
             else:
                 print('Времени нет!')
 
