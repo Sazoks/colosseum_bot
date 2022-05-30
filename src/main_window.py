@@ -2,7 +2,7 @@ import datetime as dt
 from PyQt5 import QtWidgets
 
 from ui.main_window import Ui_MainWindow
-from tickets_parser.observer import DateTimeObserver
+from tickets_parser.observer.datetime_observer import DateTimeObserver
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -33,8 +33,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 url='https://ecm.coopculture.it/index.php?option=com_snapp&view='
                     'event&id=3793660E-5E3F-9172-2F89-016CB3FAD609&catalogid=B79'
                     'E95CA-090E-FDA8-2364-017448FF0FA0&lang=it',
-                observer_date=dt.date(2022, 7, 5),
-                observer_time=...,
+                observer_date=dt.date(2022, 6, 28),
+                observer_time=dt.time(11, 24, 0),
             )  # FIXME: Добавить дату и время.
             self.__observer.start()
 
