@@ -37,6 +37,13 @@ class DateTimeChecker:
             иначе None.
         """
 
+        # Прокрутка до календаря.
+        scrolled_header = self.__driver.find_element(By.ID, 'buyticket')
+        webdriver.ActionChains(self.__driver).click(scrolled_header) \
+            .move_to_element(scrolled_header).perform()
+
+        time.sleep(3)
+
         # Объект кнопки для переключения на следующий месяц.
         next_month_btn = self.__get_next_month_btn()
         # Получение текущего месяца и года из кнопки.
@@ -80,7 +87,7 @@ class DateTimeChecker:
             # Если день недоступен, возвращаем None.
             return None
 
-        time.sleep(3)
+        time.sleep(5)
 
         # Если день доступен, определяем, доступно ли время.
         return self.__allowed_time()
@@ -125,7 +132,7 @@ class DateTimeChecker:
             # Если в текущем списке нужного времени нет, переключаем страницу.
             if next_page_btn is not None:
                 webdriver.ActionChains(self.__driver).click(next_page_btn).perform()
-                time.sleep(2)
+                time.sleep(3)
 
         return current_time_elem
 
@@ -178,9 +185,10 @@ class DateTimeChecker:
         parent = day_element.find_element(By.XPATH, '..')
 
         ALLOWED_DATE_COLOR = 'rgba(206, 234, 208, 1)'
+        CHOSEN_DATE_COLOR = 'rgba(56, 58, 62, 1)'
         css_rgb = parent.value_of_css_property('background-color')
 
-        return css_rgb == ALLOWED_DATE_COLOR
+        return css_rgb == ALLOWED_DATE_COLOR or css_rgb == CHOSEN_DATE_COLOR
 
     def __get_next_month_btn(self) -> WebElement:
         """

@@ -33,8 +33,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 url='https://ecm.coopculture.it/index.php?option=com_snapp&view='
                     'event&id=3793660E-5E3F-9172-2F89-016CB3FAD609&catalogid=B79'
                     'E95CA-090E-FDA8-2364-017448FF0FA0&lang=it',
-                observer_date=dt.date(2022, 5, 31),
-                observer_time=dt.time(13, 15, 0),
+                observer_date=dt.date(2022, 6, 6),
+                observer_time=dt.time(14, 35, 0),
             )  # FIXME: Добавить дату и время.
             self.__observer.start()
 
