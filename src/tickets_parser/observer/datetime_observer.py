@@ -42,8 +42,6 @@ class DateTimeObserver:
         self.__scheduler: Optional[BackgroundScheduler] = None
         self.__current_job: Optional[Job] = None
         self.__worked = False
-
-        # Инициализируем веб-драйвер.
         self.__driver: Optional[webdriver.Chrome] = None
 
     def set_params(self, url: str, observer_date: dt.date,
@@ -78,7 +76,15 @@ class DateTimeObserver:
         # заданы верно и наблюдатель уже не запущен.
         if not self.__worked and self._check_params():
             self.__worked = True
-            self.__driver = webdriver.Chrome(ChromeDriverManager().install())
+
+            # Устанавливаем окно барузера на весь экран.
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument("--start-maximized")
+            self.__driver = webdriver.Chrome(
+                ChromeDriverManager().install(),
+                options=chrome_options,
+            )
+
             self.__scheduler = BackgroundScheduler()
             self._add_check_task()
             self.__scheduler.start()
@@ -115,6 +121,9 @@ class DateTimeObserver:
         if self.__worked:
             # Открытие указанной страницы.
             self.__driver.get(self.__url)
+            # Плашка с куки мешается при взаимодействии с элементами страницы.
+            # Закроем ее.
+            self._close_cookie_card()
 
             # Создаем чекер даты и времени.
             datetime_checker = DateTimeChecker(
@@ -145,6 +154,11 @@ class DateTimeObserver:
             # на мониторинг. Цикл повторяется до тех пор, пока флаг
             # self__worked установлен в True.
             self._add_check_task()
+
+    def _close_cookie_card(self) -> None:
+        """Метод закрытия плашки с куки"""
+
+        self.__driver.find_element(By.CLASS_NAME, 'gdpr_denyClose').click()
 
     def _add_check_task(self) -> None:
         """Добавление задачи проверки доступных билетов"""

@@ -1,4 +1,5 @@
 import time
+import requests
 from typing import (
     List,
     Optional,
@@ -30,6 +31,8 @@ class TicketCollector:
         self.__time_info = time_info
         self.__max_tickets = self._parse_max_tickets()
         self.__count_tickets = count_tickets
+
+        # Настройка количества билетов, которые нужно купить.
         if max_tickets or self.__count_tickets > self.__max_tickets:
             self.__count_tickets = self.__max_tickets
 
@@ -68,6 +71,7 @@ class TicketCollector:
         )
         webdriver.ActionChains(self.__driver).click(modal_btn).perform()
 
+        # Ждем загрузки доступных билетов.
         time.sleep(6)
 
         # Указание количества билетов, которые надо добавить в корзину,
@@ -78,3 +82,43 @@ class TicketCollector:
         )
         input_count_tickets.clear()
         input_count_tickets.send_keys(self.__count_tickets)
+
+        # Прокручиваем страницу вниз до кнопки добавления в корзину.
+        self.__driver.execute_script(
+            'document.getElementById("myModal").scrollTo(0, document.body.scrollHeight);'
+        )
+
+        # Добавим выбранные билеты в корзину, нажав на кнопку добавления.
+        add_to_cart_btn = self.__driver.find_element(
+            By.CSS_SELECTOR,
+            '.btn.btn-primary.addtocart',
+        )
+        webdriver.ActionChains(self.__driver).click(add_to_cart_btn).perform()
+
+        # Решаем капчу.
+        self._start_solve_captcha()
+
+    def _start_solve_captcha(self):
+        API_KEY = '8f1b9c417de334c6460566bb1c7e22a3'
+        data_sitekey = '6LcCKasUAAAAAHzTzs_rUYyCJ3AY4awLzzw0UyQ8'
+        page_url = 'https://ecm.coopculture.it/index.php?option=com_snapp&view=event&id=3793660E-5E3F-9172-2F89-016CB3FAD609&catalogid=B79E95CA-090E-FDA8-2364-017448FF0FA0&lang=it'
+
+        service_url = f'http://2captcha.com/in.php?key={API_KEY}&method=userrecaptcha&googlekey={data_sitekey}&pageurl={page_url}&json=1'
+        response = requests.post(service_url)
+        time.sleep(30)
+        print(response.json())
+
+        rd1 = response.json().get('request')
+        result_url = f'http://2captcha.com/res.php?key={API_KEY}&action=get&id={int(rd1)}&json=1'
+        time.sleep(5)
+        while True:
+            r2 = requests.get(result_url)
+            print(r2.json())
+            if r2.json().get('status') == 1:
+                form_token = r2.json().get('request')
+                break
+            time.sleep(5)
+
+        self.__driver.execute_script(f'document.getElementById("g-recaptcha-response").innerHTML="{form_token}";')
+        time.sleep(3)
+        self.__driver.execute_script(f"___grecaptcha_cfg.clients['0']['L']['L']['callback']('{form_token}')")

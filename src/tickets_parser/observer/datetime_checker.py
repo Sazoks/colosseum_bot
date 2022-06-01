@@ -38,11 +38,9 @@ class DateTimeChecker:
         """
 
         # Прокрутка до календаря.
-        scrolled_header = self.__driver.find_element(By.ID, 'buyticket')
-        webdriver.ActionChains(self.__driver).click(scrolled_header) \
-            .move_to_element(scrolled_header).perform()
+        self.__driver.execute_script('window.scrollBy(0, 500);')
 
-        time.sleep(3)
+        time.sleep(2)
 
         # Объект кнопки для переключения на следующий месяц.
         next_month_btn = self.__get_next_month_btn()
