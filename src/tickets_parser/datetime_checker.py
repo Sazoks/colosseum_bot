@@ -69,6 +69,7 @@ class DateTimeChecker:
 
         # Находим в цикле нужную ячейку с датой.
         for day_element in days_elements:
+            # Парсим дату в объект python.
             date_object = dt.datetime.strptime(
                 day_element.get_attribute('data-date'), '%d/%m/%Y'
             ).date()
@@ -114,8 +115,10 @@ class DateTimeChecker:
 
             # Ищем в текущем списке нужное время.
             for time_elem in current_time_list:
+                # Берем время в виде текста из веб-элемента.
                 current_time_str = time_elem.find_element(By.TAG_NAME, 'div') \
                     .find_element(By.TAG_NAME, 'div').text
+                # Конвертируем строку в объект python.
                 current_time_obj = dt.datetime.strptime(current_time_str, '%H:%M').time()
 
                 # Если нужное время меньше самого минимального времени в
@@ -124,14 +127,17 @@ class DateTimeChecker:
                 if self.__observed_time < current_time_obj:
                     return None
 
+                # Нашли нужное время.
                 if self.__observed_time == current_time_obj:
                     return time_elem
 
-            # Если в текущем списке нужного времени нет, переключаем страницу.
+            # Если в текущем списке нужного времени нет, переключаем страницу
+            # и повторяем все операции выше.
             if next_page_btn is not None:
                 webdriver.ActionChains(self.__driver).click(next_page_btn).perform()
                 time.sleep(3)
 
+        # Если элемент найден, вернем его для дальнейшей обработки.
         return current_time_elem
 
     def __get_count_time_pages(self) -> int:

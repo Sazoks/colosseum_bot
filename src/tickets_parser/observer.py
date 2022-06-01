@@ -13,7 +13,7 @@ from .datetime_checker import DateTimeChecker
 from .ticket_collector import TicketCollector
 
 
-class DateTimeObserver:
+class Observer:
     """
     Класс для мониторинга даты и времени.
 

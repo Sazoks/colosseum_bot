@@ -1,9 +1,6 @@
 import time
 import requests
-from typing import (
-    List,
-    Optional,
-)
+from decouple import config
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
@@ -96,29 +93,51 @@ class TicketCollector:
         webdriver.ActionChains(self.__driver).click(add_to_cart_btn).perform()
 
         # Решаем капчу.
-        self._start_solve_captcha()
+        # self._start_solve_captcha()
 
-    def _start_solve_captcha(self):
-        API_KEY = '8f1b9c417de334c6460566bb1c7e22a3'
-        data_sitekey = '6LcCKasUAAAAAHzTzs_rUYyCJ3AY4awLzzw0UyQ8'
-        page_url = 'https://ecm.coopculture.it/index.php?option=com_snapp&view=event&id=3793660E-5E3F-9172-2F89-016CB3FAD609&catalogid=B79E95CA-090E-FDA8-2364-017448FF0FA0&lang=it'
+    def _start_solve_captcha(self) -> None:
+        """Метод решения рекапчи"""
 
-        service_url = f'http://2captcha.com/in.php?key={API_KEY}&method=userrecaptcha&googlekey={data_sitekey}&pageurl={page_url}&json=1'
+        # Собираем нужные параметры из файла с переменными окружения.
+        API_KEY = config('API_KEY')
+        DATA_SITE_KEY = config('DATA_SITE_KEY')
+        PAGE_URL = config('PAGE_URL')
+
+        # Составляем нужный URL-сервиса для запроса на решение капчи.
+        service_url = f'http://2captcha.com/in.php?key={API_KEY}' \
+                      f'&method=userrecaptcha&googlekey={DATA_SITE_KEY}' \
+                      f'&pageurl={PAGE_URL}&json=1'
+        # Посылаем запрос на решение капчи и делаем timeout.
         response = requests.post(service_url)
         time.sleep(30)
+        # Если капча успешно принята в обработку, вернет ее id.
         print(response.json())
 
-        rd1 = response.json().get('request')
-        result_url = f'http://2captcha.com/res.php?key={API_KEY}&action=get&id={int(rd1)}&json=1'
+        # Составляем URL для получения решения капчи.
+        captcha_id = response.json().get('request')
+        resolve_url = f'http://2captcha.com/res.php?key={API_KEY}' \
+                     f'&action=get&id={int(captcha_id)}&json=1'
         time.sleep(5)
+
+        # Посылаем запросы до тех пор, пока не получим решение капчи
+        # от сервиса.
         while True:
-            r2 = requests.get(result_url)
-            print(r2.json())
-            if r2.json().get('status') == 1:
-                form_token = r2.json().get('request')
+            response = requests.get(resolve_url)
+            print(response.json())
+            if response.json().get('status') == 1:
+                captcha_resolve_token = response.json().get('request')
                 break
             time.sleep(5)
 
-        self.__driver.execute_script(f'document.getElementById("g-recaptcha-response").innerHTML="{form_token}";')
+        # Вставляем в скрытое поле решения капчи наше решение.
+        self.__driver.execute_script(
+            f'document.getElementById("g-recaptcha-response")'
+            f'.innerHTML="{captcha_resolve_token}";'
+        )
         time.sleep(3)
-        self.__driver.execute_script(f"___grecaptcha_cfg.clients['0']['L']['L']['callback']('{form_token}')")
+        # С помощью callback-функции, встроенной на сайт, отправляем решение
+        # капчи на сервер.
+        self.__driver.execute_script(
+            f"___grecaptcha_cfg.clients['0']['L']['L']['callback']"
+            f"('{captcha_resolve_token}')"
+        )

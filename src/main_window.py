@@ -2,7 +2,7 @@ import datetime as dt
 from PyQt5 import QtWidgets
 
 from ui.main_window import Ui_MainWindow
-from tickets_parser.observer.datetime_observer import DateTimeObserver
+from tickets_parser.observer import Observer
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -20,7 +20,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
 
         # Наблюдатель за доступными билетами.
-        self.__observer = DateTimeObserver()
+        self.__observer = Observer()
 
         # Подключаем обработчик сигнала для старта мониторинга.
         self.ui.start_monitoring.clicked.connect(self._init_observer_slot)
@@ -28,6 +28,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.ui.stop_monitoring.clicked.connect(self._stop_observer_slot)
 
     def _init_observer_slot(self) -> None:
+        """Инициализация наблюдателя за билетами"""
+
+        # Проверка введенных параметров.
+        self._check_params()
+
         if not self.__observer.worked:
             self.__observer.set_params(
                 url='https://ecm.coopculture.it/index.php?option=com_snapp&view='
@@ -35,8 +40,13 @@ class MainWindow(QtWidgets.QMainWindow):
                     'E95CA-090E-FDA8-2364-017448FF0FA0&lang=it',
                 observer_date=dt.date(2022, 6, 6),
                 observer_time=dt.time(13, 15, 0),
-            )  # FIXME: Добавить дату и время.
+            )
             self.__observer.start()
+
+    def _check_params(self) -> bool:
+        """Проверка введенных пользователем параметров"""
+
+        self.ui.date_input.text()
 
     def _stop_observer_slot(self) -> None:
         if self.__observer.worked:
