@@ -5,6 +5,9 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
+from .load_waiting import wait_element
+from .informer import Informer
+
 
 class DateTimeChecker:
     """
@@ -14,18 +17,22 @@ class DateTimeChecker:
     """
 
     def __init__(self, driver: webdriver.Chrome,
-                 observed_date: dt.date, observed_time: dt.time) -> None:
+                 observed_date: dt.date,
+                 observed_time: dt.time,
+                 informer: Informer) -> None:
         """
         Инициализатор класса.
 
         :param driver: Веб-драйвер для управления браузером.
         :param observed_date: Наблюдаемая дата.
         :param observed_time: Наблюдаемое время.
+        :param informer: Объект информатора о состоянии бота.
         """
 
         self.__driver = driver
         self.__observed_date = observed_date
         self.__observed_time = observed_time
+        self.__informer = informer
 
     def start_check(self) -> Optional[WebElement]:
         """
@@ -37,7 +44,13 @@ class DateTimeChecker:
             иначе None.
         """
 
+        # Дождемся загрузки календаря. Если доступен хотя бы один элемент
+        # day-number, значит, календарь загружен.
+        wait_element(self.__driver, By.CLASS_NAME, 'day-number')
+
         # Прокрутка до календаря.
+        # Убедимся, что спускаем на 500 пиксеелй вниз точно от начала страницы.
+        self.__driver.execute_script('window.scrollTo(0, 0);')
         self.__driver.execute_script('window.scrollBy(0, 500);')
 
         time.sleep(2)
@@ -46,6 +59,11 @@ class DateTimeChecker:
         next_month_btn = self.__get_next_month_btn()
         # Получение текущего месяца и года из кнопки.
         current_date = self.__get_current_date(next_month_btn)
+
+        self.__informer.push_message(
+            'Поиск нужного месяца и года',
+            Informer.MessageLevel.INFO,
+        )
 
         # Переключаем месяца в календаре до тех пор, пока не найдем
         # нужный месяц и год.
@@ -67,6 +85,11 @@ class DateTimeChecker:
         # Текущая ячейка с датой в календаре.
         current_day_element: Optional[WebElement] = None
 
+        self.__informer.push_message(
+            'Поиск нужного дня',
+            Informer.MessageLevel.INFO,
+        )
+
         # Находим в цикле нужную ячейку с датой.
         for day_element in days_elements:
             # Парсим дату в объект python.
@@ -81,12 +104,25 @@ class DateTimeChecker:
         # проверки доступности времени.
         if current_day_element is not None \
                and self.__allowed_day(current_day_element):
+            self.__informer.push_message(
+                'Нужный день обнаружен',
+                Informer.MessageLevel.INFO,
+            )
             webdriver.ActionChains(self.__driver).click(current_day_element).perform()
+            # Дожидаемся загрузки списка со временем.
+            wait_element(self.__driver, By.CSS_SELECTOR,
+                         '.perf_row.row-height2.text-center')
         else:
+            self.__informer.push_message(
+                'Ошибка, нужный день не обнаружен',
+                Informer.MessageLevel.ERROR,
+            )
             # Если день недоступен, возвращаем None.
             return None
 
-        time.sleep(5)
+        # Дожидаемся загрузки списка со временем.
+        wait_element(self.__driver, By.CSS_SELECTOR,
+                     '.perf_row.row-height2.text-center')
 
         # Если день доступен, определяем, доступно ли время.
         return self.__allowed_time()
@@ -97,6 +133,11 @@ class DateTimeChecker:
 
         :return: True, если время доступно, иначе False.
         """
+
+        self.__informer.push_message(
+            'Поиск нужного времени',
+            Informer.MessageLevel.INFO,
+        )
 
         # Получаем количество страниц с временами.
         pages = self.__get_count_time_pages()
@@ -125,10 +166,18 @@ class DateTimeChecker:
                 # списке, останавливаем процесс поиска, т.к. дальше искать -
                 # нет смысла, т.к. все времена идут по возрастанию.
                 if self.__observed_time < current_time_obj:
+                    self.__informer.push_message(
+                        'Нужное время не обнаружено',
+                        Informer.MessageLevel.INFO,
+                    )
                     return None
 
                 # Нашли нужное время.
                 if self.__observed_time == current_time_obj:
+                    self.__informer.push_message(
+                        'Нужное время обнаружено',
+                        Informer.MessageLevel.INFO,
+                    )
                     return time_elem
 
             # Если в текущем списке нужного времени нет, переключаем страницу
@@ -176,7 +225,8 @@ class DateTimeChecker:
         # Последний элемент - элемент, содержащий кнопку переключения.
         return li_list[-1]
 
-    def __allowed_day(self, day_element: WebElement) -> bool:
+    @staticmethod
+    def __allowed_day(day_element: WebElement) -> bool:
         """
         Проверка ячейки с датой календаря на доступность.
 
@@ -211,7 +261,8 @@ class DateTimeChecker:
 
         return next_month_btn
 
-    def __get_current_date(self, next_month_btn: WebElement) -> dt.date:
+    @staticmethod
+    def __get_current_date(next_month_btn: WebElement) -> dt.date:
         """
         Получение текущего месяца и года в календаре.
 

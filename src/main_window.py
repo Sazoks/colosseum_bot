@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets
 
 from ui.main_window import Ui_MainWindow
 from tickets_parser.observer import Observer
+from tickets_parser.informer import Informer
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -18,7 +19,10 @@ class MainWindow(QtWidgets.QMainWindow):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.setWindowTitle('Colosseum Bot')
 
+        # Информер для получения информации о состоянии бота.
+        self.__informer = Informer('logs.log', self.ui.bot_info_input)
         # Наблюдатель за доступными билетами.
         self.__observer = Observer()
 
@@ -30,24 +34,80 @@ class MainWindow(QtWidgets.QMainWindow):
     def _init_observer_slot(self) -> None:
         """Инициализация наблюдателя за билетами"""
 
-        # Проверка введенных параметров.
-        self._check_params()
+        # Считываение всех значений.
+        date = dt.datetime.strptime(self.ui.date_input.text(), '%d.%m.%Y').date()
+        time = dt.datetime.strptime(self.ui.time_input.text(), '%H:%M').time()
+        count_tickets = self.ui.tickets_input.value()
+        max_tickets = self.ui.max_tickets.isChecked()
 
+        # Настройка и запуск наблюдателя.
         if not self.__observer.worked:
+            self.__informer.push_message(
+                'Запуск бота...',
+                Informer.MessageLevel.INFO,
+            )
+            self.__set_active_start_monitor_btn(False)
             self.__observer.set_params(
                 url='https://ecm.coopculture.it/index.php?option=com_snapp&view='
                     'event&id=3793660E-5E3F-9172-2F89-016CB3FAD609&catalogid=B79'
                     'E95CA-090E-FDA8-2364-017448FF0FA0&lang=it',
-                observer_date=dt.date(2022, 6, 6),
-                observer_time=dt.time(13, 15, 0),
+                observer_date=date,
+                observer_time=time,
+                count_tickets=count_tickets,
+                max_tickets=max_tickets,
+                informer=self.__informer,
             )
             self.__observer.start()
+            self.__set_active_start_monitor_btn(True)
+            self.__informer.push_message(
+                'Бот запущен',
+                Informer.MessageLevel.INFO,
+            )
 
-    def _check_params(self) -> bool:
-        """Проверка введенных пользователем параметров"""
+    def __set_active_start_monitor_btn(self, active: bool) -> None:
+        """
+        Метод блокировки кнопки старта мониторинга.
 
-        self.ui.date_input.text()
+        :param active:
+            Статус кнопки старта мониторинга.
+            True - кнопка активна. False - кнопка неактивна.
+        """
+
+        if not active:
+            self.ui.start_monitoring.setText('Запуск...')
+            self.ui.start_monitoring.setDisabled(True)
+        else:
+            self.ui.start_monitoring.setText('Начать мониторинг')
+            self.ui.start_monitoring.setDisabled(False)
 
     def _stop_observer_slot(self) -> None:
+        """Остановка наблюдателя за билетами"""
+
         if self.__observer.worked:
+            self.__informer.push_message(
+                'Остановка бота...',
+                Informer.MessageLevel.INFO,
+            )
+            self.__set_active_stop_monitor_btn(False)
             self.__observer.stop()
+            self.__set_active_stop_monitor_btn(True)
+            self.__informer.push_message(
+                'Бот остановлен',
+                Informer.MessageLevel.INFO,
+            )
+
+    def __set_active_stop_monitor_btn(self, active: bool) -> None:
+        """
+        Метод блокировки кнопки остановки мониторинга.
+
+        :param active:
+            Статус кнопки остановки мониторинга.
+            True - кнопка активна. False - кнопка неактивна.
+        """
+
+        if not active:
+            self.ui.stop_monitoring.setText('Остановка...')
+            self.ui.stop_monitoring.setDisabled(True)
+        else:
+            self.ui.stop_monitoring.setText('Стоп')
+            self.ui.stop_monitoring.setDisabled(False)

@@ -5,6 +5,9 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
+from .load_waiting import wait_element
+from .informer import Informer
+
 
 class TicketCollector:
     """
@@ -13,13 +16,17 @@ class TicketCollector:
     Отвечает за обход капчи и добавление билетов в корзину.
     """
 
-    def __init__(self, driver: webdriver.Chrome, time_info: WebElement, *,
-                 count_tickets: int = 1,  max_tickets: bool = False) -> None:
+    def __init__(self, driver: webdriver.Chrome,
+                 time_info: WebElement, *,
+                 informer: Informer,
+                 count_tickets: int = 1,
+                 max_tickets: bool = False) -> None:
         """
         Инициализатор класса.
 
         :param driver: Веб-драйвер для управления браузером.
         :param time_info: Веб-элемент с информацией о времени.
+        :param informer: Объект информера для отслеживания состояния бота.
         :param count_tickets: Количество билетов, которое нужно собрать.
         :param max_tickets: Нужно ли собирать максимальное количесвто билетов.
         """
@@ -28,6 +35,7 @@ class TicketCollector:
         self.__time_info = time_info
         self.__max_tickets = self._parse_max_tickets()
         self.__count_tickets = count_tickets
+        self.__informer = informer
 
         # Настройка количества билетов, которые нужно купить.
         if max_tickets or self.__count_tickets > self.__max_tickets:
@@ -61,6 +69,11 @@ class TicketCollector:
     def start_collect(self) -> None:
         """Процесс добавления билетов в корзину"""
 
+        self.__informer.push_message(
+            'Начало сбора билетов в корзину...',
+            Informer.MessageLevel.INFO,
+        )
+
         # Открываем модальное окно, щелкая по кнопке.
         modal_btn = self.__time_info.find_element(
             By.CSS_SELECTOR,
@@ -69,7 +82,7 @@ class TicketCollector:
         webdriver.ActionChains(self.__driver).click(modal_btn).perform()
 
         # Ждем загрузки доступных билетов.
-        time.sleep(6)
+        wait_element(self.__driver, By.CLASS_NAME, 'productrow')
 
         # Указание количества билетов, которые надо добавить в корзину,
         # в поле ввода.
@@ -93,10 +106,15 @@ class TicketCollector:
         webdriver.ActionChains(self.__driver).click(add_to_cart_btn).perform()
 
         # Решаем капчу.
-        # self._start_solve_captcha()
+        self._start_solve_captcha()
 
     def _start_solve_captcha(self) -> None:
         """Метод решения рекапчи"""
+
+        self.__informer.push_message(
+            'Обход капчи...',
+            Informer.MessageLevel.INFO,
+        )
 
         # Собираем нужные параметры из файла с переменными окружения.
         API_KEY = config('API_KEY')
@@ -109,7 +127,7 @@ class TicketCollector:
                       f'&pageurl={PAGE_URL}&json=1'
         # Посылаем запрос на решение капчи и делаем timeout.
         response = requests.post(service_url)
-        time.sleep(30)
+        time.sleep(20)
         # Если капча успешно принята в обработку, вернет ее id.
         print(response.json())
 
@@ -123,8 +141,15 @@ class TicketCollector:
         # от сервиса.
         while True:
             response = requests.get(resolve_url)
-            print(response.json())
+            self.__informer.push_message(
+                'Капча решается...',
+                Informer.MessageLevel.INFO,
+            )
             if response.json().get('status') == 1:
+                self.__informer.push_message(
+                    'Капча решена!',
+                    Informer.MessageLevel.INFO,
+                )
                 captcha_resolve_token = response.json().get('request')
                 break
             time.sleep(5)

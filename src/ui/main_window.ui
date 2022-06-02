@@ -14,8 +14,25 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout" columnstretch="3,6,3">
+   <layout class="QGridLayout" name="gridLayout" columnstretch="1,1">
+    <item row="1" column="1">
+     <widget class="QTextBrowser" name="bot_info_input"/>
+    </item>
     <item row="0" column="1">
+     <widget class="QLabel" name="label">
+      <property name="font">
+       <font>
+        <pointsize>10</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
+      <property name="text">
+       <string>Строка состояния бота:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" rowspan="2">
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
        <widget class="QDateEdit" name="date_input"/>
@@ -24,7 +41,11 @@
        <widget class="QTimeEdit" name="time_input"/>
       </item>
       <item>
-       <widget class="QSpinBox" name="tickets_input"/>
+       <widget class="QSpinBox" name="tickets_input">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QCheckBox" name="max_tickets">
@@ -47,33 +68,20 @@
         </property>
        </widget>
       </item>
+      <item>
+       <spacer name="verticalSpacer">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
      </layout>
-    </item>
-    <item row="0" column="0">
-     <spacer name="horizontalSpacer">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="0" column="2">
-     <spacer name="horizontalSpacer_2">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>40</width>
-        <height>20</height>
-       </size>
-      </property>
-     </spacer>
     </item>
    </layout>
   </widget>
