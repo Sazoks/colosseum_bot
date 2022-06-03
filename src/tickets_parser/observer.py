@@ -2,6 +2,7 @@ import time
 import random
 import datetime as dt
 from typing import Optional
+from PyQt5.QtWidgets import QMessageBox
 from apscheduler.job import Job
 from apscheduler.schedulers.background import BackgroundScheduler
 from selenium import webdriver
@@ -187,10 +188,12 @@ class Observer:
                     informer=self.__informer,
                 )
                 ticket_collector.start_collect()
-
-                # Когда билеты собраны, сообщаем об этом и ждем, пока их не
-                # купят.
-                input()
+                self.__informer.push_message(
+                    'Билеты собраны. Чтобы запустить новое сканирование, укажите '
+                    'новые дату и время и нажмите на кнопку "Начать мониторинг"',
+                    Informer.MessageLevel.INFO,
+                )
+                return
             else:
                 self.__informer.push_message(
                     f'Билеты на {self.__observed_date} {self.__observed_time} '
@@ -213,7 +216,10 @@ class Observer:
 
         # Настраиваем одноразовое событие на выполнение через delay минут.
         delay = random.randint(1, 3)
-        delay = 0
+        self.__informer.push_message(
+            f'Следующее сканирование начнется через {delay} минут',
+            Informer.MessageLevel.INFO,
+        )
         run_date = dt.datetime.now() + dt.timedelta(minutes=delay)
         self.__current_job = self.__scheduler.add_job(
             func=self._check_allowed_tickets,

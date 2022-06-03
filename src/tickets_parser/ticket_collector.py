@@ -112,7 +112,7 @@ class TicketCollector:
         """Метод решения рекапчи"""
 
         self.__informer.push_message(
-            'Обход капчи...',
+            'Начало обхода капчи...',
             Informer.MessageLevel.INFO,
         )
 
