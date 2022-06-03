@@ -99,6 +99,11 @@ class Observer:
         # Запускаем наблюдатель только в том случае, если все параметры
         # заданы верно и наблюдатель уже не запущен.
         if not self.__worked and self._check_params():
+            self.__informer.push_message(
+                'Запуск бота...',
+                Informer.MessageLevel.INFO,
+            )
+
             self.__worked = True
 
             # Устанавливаем окно барузера на весь экран.
@@ -112,6 +117,11 @@ class Observer:
             self.__scheduler = BackgroundScheduler()
             self._add_check_task()
             self.__scheduler.start()
+
+            self.__informer.push_message(
+                'Бот запущен',
+                Informer.MessageLevel.INFO,
+            )
         else:
             print('Ошибка. Необходимо настроить все параметры: URL-адрес '
                   'страницы, наблюдаемые дату и время.')
@@ -122,6 +132,11 @@ class Observer:
 
         Закрывает веб-драйвер, выключает планировщик задач.
         """
+
+        self.__informer.push_message(
+            'Остановка бота...',
+            Informer.MessageLevel.INFO,
+        )
 
         if self.__worked:
             self.__worked = False
@@ -137,6 +152,11 @@ class Observer:
                 print(e)
 
             self.__driver = None
+
+        self.__informer.push_message(
+            'Бот остановлен',
+            Informer.MessageLevel.INFO,
+        )
 
     def _check_params(self) -> bool:
         """Проверка параметров наблюдателя"""
@@ -189,8 +209,8 @@ class Observer:
                 )
                 ticket_collector.start_collect()
                 self.__informer.push_message(
-                    'Билеты собраны. Чтобы запустить новое сканирование, укажите '
-                    'новые дату и время и нажмите на кнопку "Начать мониторинг"',
+                    'Билеты собраны. Чтобы запустить новое сканирование, остановите бота, '
+                    'укажите новые дату и время и нажмите на кнопку "Начать мониторинг"',
                     Informer.MessageLevel.INFO,
                 )
                 return

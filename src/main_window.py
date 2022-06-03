@@ -42,10 +42,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Настройка и запуск наблюдателя.
         if not self.__observer.worked:
-            self.__informer.push_message(
-                'Запуск бота...',
-                Informer.MessageLevel.INFO,
-            )
             self.__set_active_start_monitor_btn(False)
             self.__observer.set_params(
                 url='https://ecm.coopculture.it/index.php?option=com_snapp&view='
@@ -59,10 +55,6 @@ class MainWindow(QtWidgets.QMainWindow):
             )
             self.__observer.start()
             self.__set_active_start_monitor_btn(True)
-            self.__informer.push_message(
-                'Бот запущен',
-                Informer.MessageLevel.INFO,
-            )
 
     def __set_active_start_monitor_btn(self, active: bool) -> None:
         """
@@ -84,17 +76,9 @@ class MainWindow(QtWidgets.QMainWindow):
         """Остановка наблюдателя за билетами"""
 
         if self.__observer.worked:
-            self.__informer.push_message(
-                'Остановка бота...',
-                Informer.MessageLevel.INFO,
-            )
             self.__set_active_stop_monitor_btn(False)
             self.__observer.stop()
             self.__set_active_stop_monitor_btn(True)
-            self.__informer.push_message(
-                'Бот остановлен',
-                Informer.MessageLevel.INFO,
-            )
 
     def __set_active_stop_monitor_btn(self, active: bool) -> None:
         """
