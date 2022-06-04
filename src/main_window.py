@@ -1,5 +1,6 @@
 import datetime as dt
 from PyQt5 import QtWidgets
+from decouple import config
 
 from ui.main_window import Ui_MainWindow
 from tickets_parser.observer import Observer
@@ -36,21 +37,29 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # Считываение всех значений.
         date = dt.datetime.strptime(self.ui.date_input.text(), '%d.%m.%Y').date()
+        # Проверка на корректность даты.
+        if date < dt.datetime.now().date():
+            self.__informer.push_message(
+                'Ошибка, указана дата в прошлом',
+                Informer.MessageLevel.ERROR,
+            )
+            return
+
         time = dt.datetime.strptime(self.ui.time_input.text(), '%H:%M').time()
         count_tickets = self.ui.tickets_input.value()
         max_tickets = self.ui.max_tickets.isChecked()
+        auto_captcha = self.ui.auto_captcha.isChecked()
 
         # Настройка и запуск наблюдателя.
         if not self.__observer.worked:
             self.__set_active_start_monitor_btn(False)
             self.__observer.set_params(
-                url='https://ecm.coopculture.it/index.php?option=com_snapp&view='
-                    'event&id=3793660E-5E3F-9172-2F89-016CB3FAD609&catalogid=B79'
-                    'E95CA-090E-FDA8-2364-017448FF0FA0&lang=it',
+                url=config('PAGE_URL'),
                 observer_date=date,
                 observer_time=time,
                 count_tickets=count_tickets,
                 max_tickets=max_tickets,
+                auto_captcha=auto_captcha,
                 informer=self.__informer,
             )
             self.__observer.start()

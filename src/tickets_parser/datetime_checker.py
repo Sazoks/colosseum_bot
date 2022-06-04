@@ -47,6 +47,9 @@ class DateTimeChecker:
         # Дождемся загрузки календаря. Если доступен хотя бы один элемент
         # day-number, значит, календарь загружен.
         wait_element(self.__driver, By.CLASS_NAME, 'day-number')
+        # Дождемся загрузки кнопки переключения месяцев.
+        wait_element(self.__driver, By.CSS_SELECTOR,
+                     '.next.changemonth.glyphicon.glyphicon-chevron-right',)
 
         # Прокрутка до календаря.
         # Убедимся, что спускаем на 500 пиксеелй вниз точно от начала страницы.

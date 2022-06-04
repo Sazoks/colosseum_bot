@@ -55,6 +55,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QCheckBox" name="auto_captcha">
+        <property name="text">
+         <string>Автообход капчи</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="start_monitoring">
         <property name="text">
          <string>Начать мониторинг</string>

@@ -30,6 +30,7 @@ class Observer:
                  observer_time: Optional[dt.time] = None,
                  count_tickets: int = 1,
                  max_tickets: bool = False,
+                 auto_captcha: bool = False,
                  informer: Optional[Informer] = None) -> None:
         """
         Инициализатор класса.
@@ -40,6 +41,7 @@ class Observer:
         :param count_tickets:
             Количество билетов, которые необходимо добавить в корзину.
         :param max_tickets: Брать ли все доступные билеты, которые есть.
+        :param auto_captcha: Автообход капчи.
         :param informer: Объект информера для отслеживания состояния бота.
         """
 
@@ -49,6 +51,7 @@ class Observer:
         self.__observed_time = observer_time
         self.__count_tickets = count_tickets
         self.__max_tickets = max_tickets
+        self.__auto_captcha = auto_captcha
 
         # Системные параметры наблюдателя.
         self.__scheduler: Optional[BackgroundScheduler] = None
@@ -62,6 +65,7 @@ class Observer:
                    observer_time: dt.time,
                    count_tickets: int = 1,
                    max_tickets: bool = False,
+                   auto_captcha: bool = False,
                    informer: Optional[Informer] = None) -> None:
         """
         Установка параметров для наблюдателя.
@@ -72,6 +76,7 @@ class Observer:
         :param count_tickets:
             Количество билетов, которые необходимо добавить в корзину.
         :param max_tickets: Брать ли все доступные билеты, которые есть.
+        :param auto_captcha: Автообход капчи.
         :param informer: Объект информера для отслеживания состояния бота.
         """
 
@@ -80,6 +85,7 @@ class Observer:
         self.__observed_time = observer_time
         self.__count_tickets = count_tickets
         self.__max_tickets = max_tickets
+        self.__auto_captcha = auto_captcha
         self.__informer = informer
 
     @property
@@ -173,6 +179,7 @@ class Observer:
         if self.__worked:
             # Открытие указанной страницы.
             self.__driver.get(self.__url)
+
             # Плашка с куки мешается при взаимодействии с элементами страницы.
             # Попытаемся закрыть ее, если она есть.
             try:
@@ -205,6 +212,7 @@ class Observer:
                     time_info=allowed_time_element,
                     count_tickets=self.__count_tickets,
                     max_tickets=self.__max_tickets,
+                    auto_captcha=self.__auto_captcha,
                     informer=self.__informer,
                 )
                 ticket_collector.start_collect()

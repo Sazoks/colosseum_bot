@@ -20,7 +20,8 @@ class TicketCollector:
                  time_info: WebElement, *,
                  informer: Informer,
                  count_tickets: int = 1,
-                 max_tickets: bool = False) -> None:
+                 max_tickets: bool = False,
+                 auto_captcha: bool = False) -> None:
         """
         Инициализатор класса.
 
@@ -29,12 +30,14 @@ class TicketCollector:
         :param informer: Объект информера для отслеживания состояния бота.
         :param count_tickets: Количество билетов, которое нужно собрать.
         :param max_tickets: Нужно ли собирать максимальное количесвто билетов.
+        :param auto_captcha: Автообход капчи.
         """
 
         self.__driver = driver
         self.__time_info = time_info
         self.__max_tickets = self._parse_max_tickets()
         self.__count_tickets = count_tickets
+        self.__auto_captcha = auto_captcha
         self.__informer = informer
 
         # Настройка количества билетов, которые нужно купить.
@@ -105,8 +108,9 @@ class TicketCollector:
         )
         webdriver.ActionChains(self.__driver).click(add_to_cart_btn).perform()
 
-        # Решаем капчу.
-        self._start_solve_captcha()
+        # Решаем капчу, если задан автообход капчи.
+        if self.__auto_captcha:
+            self._start_solve_captcha()
 
     def _start_solve_captcha(self) -> None:
         """Метод решения рекапчи"""

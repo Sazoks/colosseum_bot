@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'ui\main_window.ui'
+# Form implementation generated from reading ui file 'src\ui\main_window.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.4
 #
@@ -45,6 +45,9 @@ class Ui_MainWindow(object):
         self.max_tickets = QtWidgets.QCheckBox(self.centralwidget)
         self.max_tickets.setObjectName("max_tickets")
         self.verticalLayout.addWidget(self.max_tickets)
+        self.auto_captcha = QtWidgets.QCheckBox(self.centralwidget)
+        self.auto_captcha.setObjectName("auto_captcha")
+        self.verticalLayout.addWidget(self.auto_captcha)
         self.start_monitoring = QtWidgets.QPushButton(self.centralwidget)
         self.start_monitoring.setObjectName("start_monitoring")
         self.verticalLayout.addWidget(self.start_monitoring)
@@ -69,5 +72,6 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label.setText(_translate("MainWindow", "Строка состояния бота:"))
         self.max_tickets.setText(_translate("MainWindow", "Максимум билетов"))
+        self.auto_captcha.setText(_translate("MainWindow", "Автообход капчи"))
         self.start_monitoring.setText(_translate("MainWindow", "Начать мониторинг"))
         self.stop_monitoring.setText(_translate("MainWindow", "Стоп"))
